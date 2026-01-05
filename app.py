@@ -11,7 +11,6 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev_fallback_key")
 
 DATABASE = "tracker.db"
 
-
 # -------------------- DB UTILITIES --------------------
 
 def get_db_connection():
@@ -47,7 +46,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 # -------------------- ROUTES --------------------
 
 @app.route("/")
@@ -55,21 +53,37 @@ def index():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    today = datetime.now().date().isoformat()
+    selected_date = request.args.get("date")
+    module_filter = request.args.get("module")
+
+    if not selected_date:
+        selected_date = datetime.now().date().isoformat()
 
     conn = get_db_connection()
-    history = conn.execute(
-        """
-        SELECT module, minutes, date
+
+    query = """
+        SELECT module, minutes
         FROM history
-        WHERE user_id = ?
-        ORDER BY id DESC
-        """,
-        (session["user_id"],)
-    ).fetchall()
+        WHERE user_id = ? AND date = ?
+    """
+    params = [session["user_id"], selected_date]
+
+    if module_filter and module_filter.lower() != "all":
+        query += " AND module = ?"
+        params.append(module_filter)
+
+    history = conn.execute(query, params).fetchall()
+    total_minutes = sum(row["minutes"] for row in history)
+
     conn.close()
 
-    return render_template("index.html", today=today, history=history)
+    return render_template(
+        "index.html",
+        history=history,
+        selected_date=selected_date,
+        total_minutes=total_minutes,
+        module_filter=module_filter or "all"
+    )
 
 
 @app.route("/add", methods=["POST"])
@@ -78,15 +92,20 @@ def add_activity():
         abort(401)
 
     module = request.form.get("module", "").strip()
-    duration_minutes = request.form.get("duration_minutes")
+    hours = request.form.get("hours", "0")
+    minutes = request.form.get("minutes", "0")
+    date = request.form.get("date")
 
-    if not module or not duration_minutes:
+    if not module or not date:
         abort(400, "Invalid input")
 
-    total_minutes = int(duration_minutes)
+    try:
+        total_minutes = int(hours) * 60 + int(minutes)
+    except ValueError:
+        abort(400, "Invalid time input")
 
     if total_minutes <= 0:
-        abort(400, "Invalid duration")
+        abort(400, "Duration must be greater than zero")
 
     conn = get_db_connection()
     conn.execute(
@@ -94,13 +113,12 @@ def add_activity():
         INSERT INTO history (user_id, date, module, minutes)
         VALUES (?, ?, ?, ?)
         """,
-        (session["user_id"], datetime.now().date().isoformat(), module, total_minutes)
+        (session["user_id"], date, module, total_minutes)
     )
     conn.commit()
     conn.close()
 
-    return redirect(url_for("index"))
-
+    return redirect(url_for("index", date=date))
 
 # -------------------- AUTH --------------------
 
@@ -171,7 +189,6 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("login"))
-
 
 # -------------------- STARTUP --------------------
 
