@@ -1,33 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Daily Traction</title>
-    <style>
-        body { font-family: Arial; background:#f4f6f8; padding:40px; }
-        .container { max-width:700px; margin:auto; background:white; padding:25px; border-radius:8px; }
-        input, select, button { padding:8px; margin-top:8px; width:100%; }
-        .task { background:#eef1f4; padding:10px; margin-top:10px; border-radius:5px; }
-    </style>
-</head>
+{% extends "base.html" %}
 
-<body>
-<div class="container">
+{% block title %}Add Task{% endblock %}
+
+{% block content %}
 
 <h2>Daily Traction</h2>
 
-<!-- DATE SELECT -->
+<!-- DATE SELECT (CALENDAR ONLY) -->
 <form method="GET">
     <label>Select Date</label>
     <input type="date" name="date" value="{{ selected_date }}">
-    
-    <label>Filter Module</label>
-    <select name="module">
-        <option value="all" {% if module_filter == "all" %}selected{% endif %}>ALL</option>
-        {% for task in history %}
-            <option value="{{ task.module }}">{{ task.module }}</option>
-        {% endfor %}
-    </select>
-
     <button type="submit">View</button>
 </form>
 
@@ -37,30 +19,5 @@
 <h3>Add Task</h3>
 <form method="POST" action="/add">
     <input type="hidden" name="date" value="{{ selected_date }}">
-    <input type="text" name="module" placeholder="Module (eg: SQL)" required>
-    <input type="number" name="hours" placeholder="Hours" min="0">
-    <input type="number" name="minutes" placeholder="Minutes" min="0" max="59">
-    <button type="submit">Add</button>
-</form>
 
-<hr>
-
-<!-- SUMMARY -->
-<h3>Total Time: {{ total_minutes // 60 }}h {{ total_minutes % 60 }}m</h3>
-
-<!-- TASK LIST -->
-{% if history %}
-    {% for task in history %}
-        <div class="task">
-            <b>{{ task.module }}</b> – {{ task.minutes // 60 }}h {{ task.minutes % 60 }}m
-        </div>
-    {% endfor %}
-{% else %}
-    <p>No tasks for this date.</p>
-{% endif %}
-
-<p style="margin-top:20px;"><a href="/logout">Logout</a></p>
-
-</div>
-</body>
-</html>
+    <
