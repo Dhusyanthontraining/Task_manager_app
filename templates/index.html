@@ -1,1 +1,98 @@
---jffjjf
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daily Traction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .date {
+            text-align: center;
+            color: gray;
+            margin-bottom: 20px;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #2d89ef;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .add-btn:hover {
+            background-color: #1b5fbf;
+        }
+
+        .form-box {
+            margin-top: 20px;
+            display: none;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+        }
+
+        .save-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        function toggleForm() {
+            const form = document.getElementById("taskForm");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+    </script>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Daily Traction</h1>
+    <div class="date">{{ today }}</div>
+
+    <button class="add-btn" onclick="toggleForm()">➕ Add Task</button>
+
+    <div class="form-box" id="taskForm">
+        <form method="POST" action="/add">
+            <input type="text" name="module" placeholder="What are you learning?" required>
+
+            <input type="number" name="duration_hours" placeholder="Hours" min="0">
+            <input type="number" name="duration_minutes" placeholder="Minutes" min="0">
+
+            <button class="save-btn" type="submit">Save</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
