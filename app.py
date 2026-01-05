@@ -49,40 +49,68 @@ def init_db():
 # -------------------- ROUTES --------------------
 
 @app.route("/")
-def index():
+def home():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
     selected_date = request.args.get("date")
-    module_filter = request.args.get("module")
-
     if not selected_date:
         selected_date = datetime.now().date().isoformat()
 
     conn = get_db_connection()
-
-    query = """
+    history = conn.execute(
+        """
         SELECT module, minutes
         FROM history
         WHERE user_id = ? AND date = ?
-    """
-    params = [session["user_id"], selected_date]
-
-    if module_filter and module_filter.lower() != "all":
-        query += " AND module = ?"
-        params.append(module_filter)
-
-    history = conn.execute(query, params).fetchall()
-    total_minutes = sum(row["minutes"] for row in history)
-
+        ORDER BY id DESC
+        """,
+        (session["user_id"], selected_date)
+    ).fetchall()
     conn.close()
 
     return render_template(
-        "index.html",
+        "home.html",
         history=history,
-        selected_date=selected_date,
-        total_minutes=total_minutes,
-        module_filter=module_filter or "all"
+        selected_date=selected_date
+    )
+
+
+@app.route("/history")
+def history():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    module_filter = request.args.get("module")
+
+    conn = get_db_connection()
+
+    modules = conn.execute(
+        "SELECT DISTINCT module FROM history WHERE user_id = ?",
+        (session["user_id"],)
+    ).fetchall()
+    modules = [m["module"] for m in modules]
+
+    query = """
+        SELECT date, module, minutes
+        FROM history
+        WHERE user_id = ?
+    """
+    params = [session["user_id"]]
+
+    if module_filter:
+        query += " AND module = ?"
+        params.append(module_filter)
+
+    query += " ORDER BY date DESC"
+
+    records = conn.execute(query, params).fetchall()
+    conn.close()
+
+    return render_template(
+        "history.html",
+        records=records,
+        modules=modules
     )
 
 
@@ -97,15 +125,11 @@ def add_activity():
     date = request.form.get("date")
 
     if not module or not date:
-        abort(400, "Invalid input")
+        abort(400)
 
-    try:
-        total_minutes = int(hours) * 60 + int(minutes)
-    except ValueError:
-        abort(400, "Invalid time input")
-
+    total_minutes = int(hours) * 60 + int(minutes)
     if total_minutes <= 0:
-        abort(400, "Duration must be greater than zero")
+        abort(400)
 
     conn = get_db_connection()
     conn.execute(
@@ -118,7 +142,7 @@ def add_activity():
     conn.commit()
     conn.close()
 
-    return redirect(url_for("index", date=date))
+    return redirect(url_for("home", date=date))
 
 # -------------------- AUTH --------------------
 
@@ -129,11 +153,8 @@ def signup():
         password = request.form.get("password")
         confirm_password = request.form.get("confirm_password")
 
-        if not email or not password:
-            return "Email and password required", 400
-
-        if password != confirm_password:
-            return "Passwords do not match", 400
+        if not email or not password or password != confirm_password:
+            abort(400)
 
         password_hash = generate_password_hash(password)
 
@@ -149,7 +170,7 @@ def signup():
             conn.commit()
         except sqlite3.IntegrityError:
             conn.close()
-            return "Email already registered", 400
+            abort(400)
 
         user = conn.execute(
             "SELECT id FROM users WHERE email = ?",
@@ -158,7 +179,7 @@ def signup():
         conn.close()
 
         session["user_id"] = user["id"]
-        return redirect(url_for("index"))
+        return redirect(url_for("home"))
 
     return render_template("signup.html")
 
@@ -177,10 +198,10 @@ def login():
         conn.close()
 
         if not user or not check_password_hash(user["password_hash"], password):
-            return "Invalid email or password", 400
+            abort(400)
 
         session["user_id"] = user["id"]
-        return redirect(url_for("index"))
+        return redirect(url_for("home"))
 
     return render_template("login.html")
 
