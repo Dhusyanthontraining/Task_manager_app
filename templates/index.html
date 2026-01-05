@@ -10,7 +10,7 @@
         }
 
         .container {
-            max-width: 500px;
+            max-width: 600px;
             margin: auto;
             background: white;
             padding: 25px;
@@ -39,13 +39,8 @@
             cursor: pointer;
         }
 
-        .add-btn:hover {
-            background-color: #1b5fbf;
-        }
-
         .form-box {
             margin-top: 20px;
-            display: none;
         }
 
         input {
@@ -64,14 +59,14 @@
             border-radius: 5px;
             cursor: pointer;
         }
-    </style>
 
-    <script>
-        function toggleForm() {
-            const form = document.getElementById("taskForm");
-            form.style.display = form.style.display === "none" ? "block" : "none";
+        .task {
+            background: #f1f3f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
         }
-    </script>
+    </style>
 </head>
 
 <body>
@@ -80,18 +75,32 @@
     <h1>Daily Traction</h1>
     <div class="date">{{ today }}</div>
 
-    <button class="add-btn" onclick="toggleForm()">➕ Add Task</button>
-
-    <div class="form-box" id="taskForm">
+    <!-- ADD TASK -->
+    <div class="form-box">
         <form method="POST" action="/add">
-            <input type="text" name="module" placeholder="What are you learning?" required>
-
-            <input type="number" name="duration_minutes" placeholder="Minutes" min="0" max="59">
-
-
-            <button class="save-btn" type="submit">Save</button>
+            <input type="text" name="module" placeholder="What did you work on?" required>
+            <input type="number" name="duration_minutes" placeholder="Minutes spent" min="1" required>
+            <button class="save-btn" type="submit">Add Task</button>
         </form>
     </div>
+
+    <!-- TASK HISTORY -->
+    <h3 style="margin-top:30px;">Today's Tasks</h3>
+
+    {% if history %}
+        {% for task in history %}
+            <div class="task">
+                <strong>{{ task.module }}</strong><br>
+                {{ task.minutes }} minutes
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No tasks logged yet.</p>
+    {% endif %}
+
+    <p style="margin-top:20px;">
+        <a href="/logout">Logout</a>
+    </p>
 </div>
 
 </body>
