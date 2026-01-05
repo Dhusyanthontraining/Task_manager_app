@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}History{% endblock %}
+
+{% block content %}
+<h2>Overall Time Summary</h2>
+
+<form method="get">
+    <label>Module:</label>
+    <select name="module">
+        <option value="">All</option>
+        {% for m in modules %}
+            <option value="{{ m }}">{{ m }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+</form>
+
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Module</th>
+        <th>Hours</th>
+    </tr>
+    {% for row in records %}
+    <tr>
+        <td>{{ row.date }}</td>
+        <td>{{ row.module }}</td>
+        <td>{{ row.hours }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
