@@ -20,4 +20,29 @@
 <form method="POST" action="/add">
     <input type="hidden" name="date" value="{{ selected_date }}">
 
-    <
+    <input type="text" name="module" placeholder="Module (eg: SQL)" required>
+
+    <input type="number" name="hours" placeholder="Hours" min="0">
+
+    <input type="number" name="minutes" placeholder="Minutes" min="0" max="59">
+
+    <button type="submit">Add Task</button>
+</form>
+
+<hr>
+
+<!-- TASK LIST FOR SELECTED DATE ONLY -->
+<h3>Tasks for {{ selected_date }}</h3>
+
+{% if history %}
+    {% for task in history %}
+        <div class="task">
+            <strong>{{ task.module }}</strong>
+            — {{ task.minutes // 60 }}h {{ task.minutes % 60 }}m
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No tasks for this date.</p>
+{% endif %}
+
+{% endblock %}
