@@ -86,8 +86,8 @@
         <form method="POST" action="/add">
             <input type="text" name="module" placeholder="What are you learning?" required>
 
-            <input type="number" name="duration_hours" placeholder="Hours" min="0">
-            <input type="number" name="duration_minutes" placeholder="Minutes" min="0">
+            <input type="number" name="duration_minutes" placeholder="Minutes" min="0" max="59">
+
 
             <button class="save-btn" type="submit">Save</button>
         </form>
