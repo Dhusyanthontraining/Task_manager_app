@@ -3,105 +3,64 @@
 <head>
     <title>Daily Traction</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
-            padding: 40px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        .date {
-            text-align: center;
-            color: gray;
-            margin-bottom: 20px;
-        }
-
-        .add-btn {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            background-color: #2d89ef;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .form-box {
-            margin-top: 20px;
-        }
-
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-top: 8px;
-            margin-bottom: 12px;
-        }
-
-        .save-btn {
-            background-color: #28a745;
-            color: white;
-            padding: 10px;
-            border: none;
-            width: 100%;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .task {
-            background: #f1f3f5;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
+        body { font-family: Arial; background:#f4f6f8; padding:40px; }
+        .container { max-width:700px; margin:auto; background:white; padding:25px; border-radius:8px; }
+        input, select, button { padding:8px; margin-top:8px; width:100%; }
+        .task { background:#eef1f4; padding:10px; margin-top:10px; border-radius:5px; }
     </style>
 </head>
 
 <body>
-
 <div class="container">
-    <h1>Daily Traction</h1>
-    <div class="date">{{ today }}</div>
 
-    <!-- ADD TASK -->
-    <div class="form-box">
-        <form method="POST" action="/add">
-            <input type="text" name="module" placeholder="What did you work on?" required>
-            <input type="number" name="duration_minutes" placeholder="Minutes spent" min="1" required>
-            <button class="save-btn" type="submit">Add Task</button>
-        </form>
-    </div>
+<h2>Daily Traction</h2>
 
-    <!-- TASK HISTORY -->
-    <h3 style="margin-top:30px;">Today's Tasks</h3>
-
-    {% if history %}
+<!-- DATE SELECT -->
+<form method="GET">
+    <label>Select Date</label>
+    <input type="date" name="date" value="{{ selected_date }}">
+    
+    <label>Filter Module</label>
+    <select name="module">
+        <option value="all" {% if module_filter == "all" %}selected{% endif %}>ALL</option>
         {% for task in history %}
-            <div class="task">
-                <strong>{{ task.module }}</strong><br>
-                {{ task.minutes }} minutes
-            </div>
+            <option value="{{ task.module }}">{{ task.module }}</option>
         {% endfor %}
-    {% else %}
-        <p>No tasks logged yet.</p>
-    {% endif %}
+    </select>
 
-    <p style="margin-top:20px;">
-        <a href="/logout">Logout</a>
-    </p>
+    <button type="submit">View</button>
+</form>
+
+<hr>
+
+<!-- ADD TASK -->
+<h3>Add Task</h3>
+<form method="POST" action="/add">
+    <input type="hidden" name="date" value="{{ selected_date }}">
+    <input type="text" name="module" placeholder="Module (eg: SQL)" required>
+    <input type="number" name="hours" placeholder="Hours" min="0">
+    <input type="number" name="minutes" placeholder="Minutes" min="0" max="59">
+    <button type="submit">Add</button>
+</form>
+
+<hr>
+
+<!-- SUMMARY -->
+<h3>Total Time: {{ total_minutes // 60 }}h {{ total_minutes % 60 }}m</h3>
+
+<!-- TASK LIST -->
+{% if history %}
+    {% for task in history %}
+        <div class="task">
+            <b>{{ task.module }}</b> – {{ task.minutes // 60 }}h {{ task.minutes % 60 }}m
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No tasks for this date.</p>
+{% endif %}
+
+<p style="margin-top:20px;"><a href="/logout">Logout</a></p>
+
 </div>
-
 </body>
 </html>
